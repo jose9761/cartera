@@ -463,19 +463,42 @@ async function refreshPrices(force){
 
   try {
     // 1. MEP desde dolarapi.com (tiene CORS abierto, anda directo del navegador)
+    let mepOk = true;
     try {
       const mepRes  = await fetch('https://dolarapi.com/v1/dolares/bolsa');
       const mepData = await mepRes.json();
       if (mepData.venta && mepData.venta > 100) {
         mep = mepData.venta;
+      } else {
+        mepOk = false;
       }
-    } catch(e){ console.warn('MEP fetch falló, uso último valor:', e); }
+    } catch(e){
+      console.warn('MEP fetch falló, uso último valor:', e);
+      mepOk = false;
+    }
 
     // 2. Precios de acciones subyacentes desde Tiingo (endpoint IEX)
     // Traducimos tickers locales a nombres Tiingo (BRKB → BRK-B, etc.)
+    // IMPORTANTE: la API key va en header Authorization (no en URL) para que
+    // no falle por CORS desde dominios como github.io
     const tickersTiingo = tickers.map(toTiingo);
-    const tiingoUrl = `https://api.tiingo.com/iex/?tickers=${tickersTiingo.join(',')}&token=${key}`;
-    const pxRes  = await fetch(tiingoUrl);
+    const tiingoUrl = `https://api.tiingo.com/iex/?tickers=${tickersTiingo.join(',')}`;
+    let pxRes;
+    try {
+      pxRes = await fetch(tiingoUrl, {
+        headers: {
+          'Authorization': 'Token ' + key,
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch(e) {
+      // TypeError: Failed to fetch → casi siempre CORS bloqueado o sin internet
+      setSt('err', 'no pude conectar a Tiingo (CORS o sin internet)');
+      toast('⚠ No pude conectar a Tiingo. Revisá consola (F12) para detalles.');
+      console.warn('Fetch a Tiingo falló a nivel red:', e);
+      renderAll();
+      return;
+    }
     if(!pxRes.ok){
       if(pxRes.status === 401 || pxRes.status === 403){
         setSt('err', 'API key de Tiingo inválida');
@@ -506,7 +529,12 @@ async function refreshPrices(force){
     }
 
     save();
-    setSt('live', 'en vivo · ' + new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}));
+    const hora = new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+    if(mepOk){
+      setSt('live', 'en vivo · ' + hora);
+    } else {
+      setSt('live', 'en vivo · ' + hora + ' · MEP cacheado');
+    }
     toast('✓ Precios actualizados' + (missing.length? ' (faltan: '+missing.join(',')+')':''));
 
   } catch(e) {
@@ -854,7 +882,12 @@ async function ejecutarCalib(){
   try {
     // Fetch a Tiingo con todos los tickers que queremos calibrar (traducidos)
     const symList = Object.keys(precios).map(toTiingo).join(',');
-    const r = await fetch(`https://api.tiingo.com/iex/?tickers=${symList}&token=${key}`);
+    const r = await fetch(`https://api.tiingo.com/iex/?tickers=${symList}`, {
+      headers: {
+        'Authorization': 'Token ' + key,
+        'Content-Type': 'application/json'
+      }
+    });
     if(!r.ok) throw new Error('Tiingo HTTP ' + r.status);
     const data = await r.json();
 
