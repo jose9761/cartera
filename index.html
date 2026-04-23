@@ -2,11 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#07080a">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cartera Jose</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -129,67 +125,6 @@ select option{background:var(--s2)}
   th,td{padding:7px 9px;font-size:11px}
 }
 .donut-tip{position:fixed;background:var(--s2);border:1px solid var(--b2);border-radius:9px;padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--tx);line-height:1.7;pointer-events:none;display:none;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.25)}
-
-/* ── MOBILE ── */
-@media(max-width:600px){
-  header{padding:0 12px;height:50px}
-  .logo{font-size:11px}
-  .btn{padding:5px 10px;font-size:11px}
-  .btn-g{padding:5px 12px}
-  .summary{padding:10px 12px;gap:0;display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--b1)}
-  .si{padding:8px 10px;border-right:none;border-bottom:1px solid var(--b1)}
-  .si:nth-child(odd){border-right:1px solid var(--b1)}
-  .sl{font-size:9px}
-  .sv{font-size:15px}
-  .ss{font-size:10px}
-  main{padding:12px 10px;gap:12px}
-  .toolbar{gap:8px}
-  .tabs .tab{padding:5px 10px;font-size:11px}
-  .cb{padding:5px 10px;font-size:11px}
-  .card-hdr,.ch{padding:10px 12px}
-  /* Tabla posiciones: mostrar solo columnas clave en mobile */
-  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  th,td{padding:8px 10px;font-size:11px}
-  /* Ocultar columnas menos importantes en mobile */
-  th:nth-child(2),td:nth-child(2),  /* fecha */
-  th:nth-child(4),td:nth-child(4),  /* qty */
-  th:nth-child(5),td:nth-child(5),  /* p.compra */
-  th:nth-child(10),td:nth-child(10) /* broker */
-  {display:none}
-  /* Consolidado charts */
-  .cgrid{grid-template-columns:1fr}
-  .dw{flex-direction:column;align-items:center}
-  .leg{width:100%}
-  .bsec .brow{gap:6px}
-  .blbl{width:40px;font-size:10px}
-  .bval{font-size:10px;min-width:50px}
-  /* Price grid */
-  .pgrid{grid-template-columns:1fr 1fr;gap:8px;padding:10px}
-  .pxc{padding:10px}
-  .pxt{font-size:12px}
-  /* Consolidado table — ocultar columnas en mobile */
-  #tab-consolidado th:nth-child(3),#tab-consolidado td:nth-child(3),
-  #tab-consolidado th:nth-child(4),#tab-consolidado td:nth-child(4),
-  #tab-consolidado th:nth-child(7),#tab-consolidado td:nth-child(7)
-  {display:none}
-  /* Modales */
-  .modal{padding:20px 16px}
-  .fr{grid-template-columns:1fr}
-  /* Toast */
-  .toast{left:12px;right:12px;bottom:16px;text-align:center}
-  /* Donut tip — no hover en mobile, usar tap */
-  .donut-tip{font-size:11px;padding:8px 12px}
-  /* Banner */
-  #cors-banner{padding:12px 16px}
-}
-/* Tap highlight y scroll suave */
-*{-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-/* Botones más fáciles de tocar en mobile */
-@media(max-width:600px){
-  .btn,.tab,.cb{min-height:36px;display:inline-flex;align-items:center;justify-content:center}
-  .db{min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
-}
 </style>
 </head>
 <body>
@@ -199,7 +134,8 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
   <div class="hdr-r">
     <div id="sbadge"><span id="sdot"></span><span id="stxt">iniciando...</span></div>
     <button class="btn" id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">☀</button>
-    <button class="btn" onclick="changeTiingoKey()" title="Cambiar API key de Tiingo">🔑</button>
+    <button class="btn" onclick="abrirCalib()" title="Calibrar ratios con precios de tu broker">⚖</button>
+    <button class="btn" onclick="abrirConfig()" title="Configurar API key">⚙</button>
     <button class="btn" onclick="refreshPrices()">↻ Actualizar</button>
     <button class="btn btn-g" onclick="openModal()">+ Compra</button>
   </div>
@@ -331,16 +267,46 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 </div>
 
 
-<div id="cors-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;background:#1c2230;border-top:2px solid #f5c842;padding:16px 28px">
-  <div style="max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px">
-    <div style="font-family:var(--mono);font-size:12px;color:var(--mu2);line-height:1.8">
-      <span style="color:var(--y);font-weight:500">⚠ No se pudieron obtener los precios.</span>
-      Verificá tu conexión o tu API key de Tiingo (botón 🔑) y hacé clic en <b style="color:var(--tx)">↻ Actualizar</b>.
+<div id="cfg-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;background:#1c2230;border-top:2px solid #f5c842;padding:16px 28px">
+  <div style="max-width:800px;margin:0 auto">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:260px">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--y);font-weight:500;margin-bottom:10px">⚠ Configurá tu API key de Tiingo para ver precios</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--mu2);line-height:1.7;margin-bottom:12px">
+          Es gratis: <a href="https://www.tiingo.com/account/api/token" target="_blank" style="color:var(--b)">tiingo.com/account/api/token</a><br>
+          La key se guarda solo en tu navegador (localStorage). No se sube a ningún lado.
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input id="cfg-key-inp" type="password" placeholder="pegá tu API key acá" style="flex:1;min-width:200px;max-width:360px;background:var(--s3);border:1px solid var(--b2);border-radius:7px;color:var(--tx);font-family:var(--mono);font-size:12px;padding:8px 10px;outline:none">
+          <button class="btn btn-g" onclick="guardarKey()">Guardar</button>
+        </div>
+      </div>
+      <button onclick="document.getElementById('cfg-banner').style.display='none'" style="background:none;border:none;color:var(--mu);cursor:pointer;font-size:20px;padding:0;flex-shrink:0">×</button>
     </div>
-    <button onclick="document.getElementById('cors-banner').style.display='none'" style="background:none;border:none;color:var(--mu);cursor:pointer;font-size:20px;padding:0;flex-shrink:0">×</button>
   </div>
 </div>
+
 <div id="donut-tip" class="donut-tip"></div>
+
+<!-- Modal de calibración de ratios -->
+<div class="backdrop" id="calib-backdrop" onclick="closeCalibOut(event)">
+  <div class="modal" style="width:520px;max-height:85vh;display:flex;flex-direction:column">
+    <h3 style="margin-bottom:8px">Calibrar ratios de CEDEAR</h3>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--mu2);line-height:1.6;margin-bottom:14px">
+      Pegá el <b style="color:var(--tx)">precio USD del CEDEAR</b> que ves en tu broker para cada ticker.
+      La app consulta Tiingo y deduce el ratio automáticamente.
+    </div>
+    <div id="calib-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px"></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:10px;line-height:1.5">
+      Dejá vacío los tickers que no querés recalibrar (se mantiene el ratio actual).
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="resetRatios()" style="margin-right:auto;font-size:11px;color:var(--mu2)" title="Borrar ratios guardados manualmente y volver a los defaults">↻ reset</button>
+      <button class="btn" onclick="closeCalib()">Cancelar</button>
+      <button class="btn btn-g" onclick="ejecutarCalib()" id="calib-go">Guardar calibración</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -349,6 +315,56 @@ let mep=1180,cur='ARS',modalCur='ARS';
 let lp={};
 let sortK='va',sortD=-1;
 let activeTab='posiciones';
+
+// Ratios de CEDEARs (cuántos CEDEARs = 1 acción subyacente)
+// Deducidos de los datos reales de compra: ratio ≈ precio_acción_fecha_compra / precCompUSD
+// Estos ratios son los oficiales BYMA al día de hoy. Editalos desde la UI si cambian.
+const RATIOS_DEFAULT = {
+  // Ratios oficiales según broker (abril 2026)
+  NVDA:24, IBIT:10, BRKB:22, GOOGL:58, AMAT:5, SPY:20,
+  TSLA:15, MSFT:30, AMD:10, ASML:146, NFLX:48,
+  // otros tickers comunes por si los agregás — VERIFICAR con broker:
+  AAPL:10, AMZN:12, META:6, KO:5, JPM:5, V:6, MA:12, DIS:4,
+  BABA:5, VIST:1, MELI:20, XOM:2, PFE:3, BAC:5, WMT:6, NKE:5
+};
+
+function getRatios(){
+  // overrides manuales del usuario prevalecen sobre defaults
+  try {
+    const saved = JSON.parse(localStorage.getItem('cartera_ratios') || '{}');
+    return {...RATIOS_DEFAULT, ...saved};
+  } catch(e) { return {...RATIOS_DEFAULT}; }
+}
+function getRatio(ticker){ return getRatios()[ticker] || 1; }
+function saveRatio(ticker, ratio){
+  try {
+    const saved = JSON.parse(localStorage.getItem('cartera_ratios') || '{}');
+    if(ratio && ratio > 0) saved[ticker] = Number(ratio);
+    else delete saved[ticker];
+    localStorage.setItem('cartera_ratios', JSON.stringify(saved));
+  } catch(e) {}
+}
+
+// Alias de tickers: mapeo "ticker tuyo" → "ticker Tiingo"
+// Tiingo usa guiones para clases de acciones (BRK-B en vez de BRKB)
+const TIINGO_ALIAS = {
+  'BRKB': 'BRK-B',
+  'BRKA': 'BRK-A',
+  // agregar más acá si aparecen casos similares
+};
+function toTiingo(ticker){ return TIINGO_ALIAS[ticker] || ticker; }
+function fromTiingo(sym){
+  // reverso: si Tiingo devuelve BRK-B, volverlo a BRKB
+  const up = (sym || '').toUpperCase();
+  for(const [local, remote] of Object.entries(TIINGO_ALIAS)){
+    if(remote.toUpperCase() === up) return local;
+  }
+  return up;
+}
+
+// API key de Tiingo (se guarda en localStorage del navegador del usuario)
+function getTiingoKey(){ return localStorage.getItem('tiingo_key') || ''; }
+function setTiingoKey(k){ localStorage.setItem('tiingo_key', k.trim()); }
 
 // Cartera exacta del xlsx — 18 posiciones vigentes
 // precCompUSD = precio de compra por nominal en USD (col PRECIO ADQ del xlsx que es USD/nominal)
@@ -378,15 +394,20 @@ let PORT=[
 let nextId=20;
 const SK='cartera_ar_v3';
 
-function save(){try{lpPrev=Object.assign({},lp);localStorage.setItem(SK,JSON.stringify({PORT,mep,nextId,lp}))}catch(e){}}
+function save(){
+  try{
+    localStorage.setItem(SK, JSON.stringify({PORT, mep, nextId}));
+  }catch(e){ console.warn('save error:', e); }
+}
+
 function load(){
   try{
     const d=JSON.parse(localStorage.getItem(SK));
     if(d?.PORT?.length >= PORT.length){
       PORT=d.PORT; if(d.mep)mep=d.mep; if(d.nextId)nextId=d.nextId;
-      if(d.lp && Object.keys(d.lp).length>0){ lp=d.lp; lpPrev=Object.assign({},d.lp); }
     }
   }catch(e){}
+  return Promise.resolve(); // load sigue siendo llamada con .then() más abajo
 }
 
 function getARS(ticker){return lp[ticker]?.ars||null}
@@ -410,127 +431,120 @@ function fd(s){if(!s)return'—';const d=new Date(s+'T12:00:00');return d.toLoca
 function pc(v){return v>0?'g':v<0?'r':''}
 function pp(t){return t==='CEDEAR'?'pc':t==='ACCION'?'pa':'po'}
 
-// ═══ TIINGO API ═══
-// Tiingo devuelve precios USD del subyacente (Wall Street). Para el CEDEAR local:
-//   precioCEDEAR_USD = precio_stock_USD / ratio_CEDEAR
-//   precioCEDEAR_ARS = precioCEDEAR_USD * MEP
-// Ratios estándar BYMA (stock:cedear). Si algún ticker no está, asume 1:1.
-const CEDEAR_RATIO = {
-  'NVDA':10, 'IBIT':20, 'BRKB':5,   'GOOGL':4,  'AMAT':5,
-  'SPY':10,  'TSLA':5,  'MSFT':5,   'AMD':5,    'ASML':5,
-  'NFLX':20, 'AAPL':10, 'AMZN':2,   'META':5,   'KO':5,
-  'JPM':5,   'V':5,     'DIS':4,    'BABA':5,   'INTC':2,
-  'QQQ':8,   'XOM':2,   'BA':5,     'VIST':1,   'GGAL':10,
-  'YPFD':1,  'PAMP':1
-};
-const TIINGO_KEY_SK = 'tiingo_api_key';
-let TIINGO_KEY = localStorage.getItem(TIINGO_KEY_SK) || '';
-let lpPrev = {};
+// Rate limiting y cache: Tiingo free tier tiene límites estrictos
+let _lastFetchAt = 0;
+let _lastFetchKey = ''; // para invalidar cache si cambian los tickers
 
-function getTiingoKey(){
-  if(!TIINGO_KEY){
-    const k = prompt('Ingresá tu API key de Tiingo (tiingo.com):');
-    if(k && k.trim()){
-      TIINGO_KEY = k.trim();
-      localStorage.setItem(TIINGO_KEY_SK, TIINGO_KEY);
-    }
+async function refreshPrices(force){
+  const tickers = [...new Set(PORT.map(p => p.ticker))];
+  const cacheKey = tickers.sort().join(',');
+  const now = Date.now();
+  const sinceLastMs = now - _lastFetchAt;
+
+  // Cache: no re-fetchear si pasó menos de 60s y el set de tickers es el mismo
+  if(!force && _lastFetchAt > 0 && sinceLastMs < 60*1000 && cacheKey === _lastFetchKey){
+    // Sólo recalcular los valores ARS/USD localmente (por si cambió un ratio o el MEP)
+    recalcularConUltimosDatos();
+    renderAll();
+    const seg = Math.round(sinceLastMs/1000);
+    setSt('live', 'cache · hace '+seg+'s');
+    return;
   }
-  return TIINGO_KEY;
-}
-function changeTiingoKey(){
-  const cur = TIINGO_KEY ? TIINGO_KEY.slice(0,4)+'…'+TIINGO_KEY.slice(-4) : '(ninguna)';
-  const k = prompt('API key actual: '+cur+'\n\nIngresá nueva key de Tiingo (cancelar para dejar así):');
-  if(k && k.trim()){
-    TIINGO_KEY = k.trim();
-    localStorage.setItem(TIINGO_KEY_SK, TIINGO_KEY);
-    toast('✓ API key guardada');
-    refreshPrices();
-  }
-}
 
-async function refreshPrices(){
-  const tickers=[...new Set(PORT.map(p=>p.ticker))];
-  setSt('loading','actualizando precios…');
+  setSt('loading', 'actualizando precios…');
 
-  // 1) MEP via dolarapi (sin API key, CORS abierto)
-  try {
-    const mepR = await fetch('https://dolarapi.com/v1/dolares/bolsa');
-    const mepD = await mepR.json();
-    if(mepD.venta > 100){
-      mep = mepD.venta;
-      document.getElementById('s-mep').textContent = '$'+mep.toLocaleString('es-AR');
-    }
-  } catch(e){ console.warn('MEP fetch failed:', e); }
-
-  // 2) Verificar key
   const key = getTiingoKey();
   if(!key){
-    setSt('err','falta API key de Tiingo · tocá 🔑');
-    if(Object.keys(lpPrev).length > 0){ lp = Object.assign({}, lpPrev); }
+    setSt('err', 'falta API key de Tiingo');
+    document.getElementById('cfg-banner').style.display = 'block';
     renderAll();
     return;
   }
 
-  // 3) Precios via Tiingo IEX (intraday) — un request por ticker en paralelo
-  // Endpoint: https://api.tiingo.com/iex/?tickers=NVDA,SPY&token=KEY
-  // Devuelve array con { ticker, last, prevClose, tngoLast, ... }
   try {
-    const url = `https://api.tiingo.com/iex/?tickers=${tickers.join(',')}&token=${encodeURIComponent(key)}`;
-    const r = await fetch(url, {
-      headers: {'Content-Type':'application/json'},
-      signal: AbortSignal.timeout(12000)
-    });
-    if(r.status === 401 || r.status === 403){
-      setSt('err','API key inválida · tocá 🔑 para cambiarla');
-      toast('⚠ Key rechazada por Tiingo ('+r.status+')');
-      return;
+    // 1. MEP desde dolarapi.com (tiene CORS abierto, anda directo del navegador)
+    try {
+      const mepRes  = await fetch('https://dolarapi.com/v1/dolares/bolsa');
+      const mepData = await mepRes.json();
+      if (mepData.venta && mepData.venta > 100) {
+        mep = mepData.venta;
+      }
+    } catch(e){ console.warn('MEP fetch falló, uso último valor:', e); }
+
+    // 2. Precios de acciones subyacentes desde Tiingo (endpoint IEX)
+    // Traducimos tickers locales a nombres Tiingo (BRKB → BRK-B, etc.)
+    const tickersTiingo = tickers.map(toTiingo);
+    const tiingoUrl = `https://api.tiingo.com/iex/?tickers=${tickersTiingo.join(',')}&token=${key}`;
+    const pxRes  = await fetch(tiingoUrl);
+    if(!pxRes.ok){
+      if(pxRes.status === 401 || pxRes.status === 403){
+        setSt('err', 'API key de Tiingo inválida');
+        document.getElementById('cfg-banner').style.display = 'block';
+        renderAll();
+        return;
+      }
+      if(pxRes.status === 429){
+        setSt('err', 'Tiingo rate limit · esperá unos minutos');
+        toast('⚠ Tiingo rate limit. El plan gratuito permite pocas consultas por hora. Esperá ~15 min.');
+        renderAll();
+        return;
+      }
+      throw new Error('Tiingo HTTP ' + pxRes.status);
     }
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const data = await r.json();
-    if(!Array.isArray(data) || data.length === 0) throw new Error('Tiingo sin datos');
+    const pxData = await pxRes.json();
 
-    const newLp = {};
-    data.forEach(q => {
-      const tk = (q.ticker||'').toUpperCase();
-      if(!tk) return;
-      const priceStockUSD = q.tngoLast ?? q.last ?? q.mid ?? null;
-      const prevStockUSD  = q.prevClose ?? priceStockUSD;
-      if(priceStockUSD == null) return;
-      const ratio = CEDEAR_RATIO[tk] || 1;
-      const cedearUSD = priceStockUSD / ratio;
-      const cedearARS = cedearUSD * mep;
-      const varPct = (priceStockUSD && prevStockUSD && prevStockUSD>0)
-        ? (priceStockUSD-prevStockUSD)/prevStockUSD*100 : 0;
-      newLp[tk] = {
-        ars: Math.round(cedearARS),
-        usd: +cedearUSD.toFixed(4),
-        var_pct: +varPct.toFixed(2),
-        stock_usd: +priceStockUSD.toFixed(2),
-        ratio: ratio
-      };
-    });
+    // Guardar raw data para poder recalcular sin nuevo fetch
+    window._lastTiingoData = pxData;
+    _lastFetchAt = now;
+    _lastFetchKey = cacheKey;
 
-    if(Object.keys(newLp).length === 0) throw new Error('Tiingo no devolvió tickers válidos');
+    procesarDatosTiingo(pxData);
 
-    lp = newLp;
-    // Tickers que Tiingo no devolvió — mantener precio anterior si existe
-    tickers.forEach(t=>{ if(!lp[t] && lpPrev[t]) lp[t]=lpPrev[t]; });
-    lpPrev = Object.assign({}, lp);
+    const missing = tickers.filter(t => !lp[t]);
+    if(missing.length){
+      console.warn('Tiingo no devolvió datos para:', missing.join(', '));
+    }
+
     save();
-    setSt('live','en vivo · Tiingo · '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}));
-    toast('✓ '+Object.keys(newLp).length+' precios actualizados (Tiingo)');
+    setSt('live', 'en vivo · ' + new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}));
+    toast('✓ Precios actualizados' + (missing.length? ' (faltan: '+missing.join(',')+')':''));
+
   } catch(e) {
-    console.warn('Tiingo refreshPrices error:', e);
-    if(Object.keys(lp).length > 0){
-      setSt('err','sin conexión · mostrando últimos precios');
-    } else if(Object.keys(lpPrev).length > 0){
-      lp = Object.assign({}, lpPrev);
-      setSt('err','sin conexión · usando cache');
-    } else {
-      setSt('err','error Tiingo · '+e.message.slice(0,50));
-    }
+    setSt('err', 'error: ' + (e.message || 'desconocido'));
+    console.warn('Fetch precios falló:', e);
+    toast('⚠ Error al actualizar. Revisá consola.');
   }
   renderAll();
+}
+
+// Procesa data cruda de Tiingo y llena lp[]. Extraído para reusar en recalcular.
+function procesarDatosTiingo(pxData){
+  lp = {};
+  pxData.forEach(row => {
+    const ticker = fromTiingo(row.ticker);
+    const usdAccion = row.last ?? row.tngoLast ?? row.mid ?? row.prevClose;
+    const prevAccion = row.prevClose || usdAccion;
+    if (usdAccion && usdAccion > 0){
+      const ratio = getRatio(ticker);
+      const usdCedear = usdAccion / ratio;
+      const arsCedear = usdCedear * mep;
+      const var_pct = prevAccion > 0 ? ((usdAccion - prevAccion) / prevAccion * 100) : 0;
+      lp[ticker] = {
+        ars: +arsCedear.toFixed(2),
+        usd: +usdCedear.toFixed(4),
+        var_pct: +var_pct.toFixed(2),
+        ratio: ratio,
+        usdAccion: +usdAccion.toFixed(2)
+      };
+    }
+  });
+}
+
+// Recalcula ARS/USD sin volver a pedir a Tiingo (usando datos cacheados)
+function recalcularConUltimosDatos(){
+  if(window._lastTiingoData){
+    procesarDatosTiingo(window._lastTiingoData);
+  }
 }
 
 function setSt(type,txt){
@@ -661,27 +675,6 @@ function renderConsolidado(){
 
   // Hover tooltip
   const tip=document.getElementById('donut-tip');
-  canvas.addEventListener('touchstart', function(e){
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect=canvas.getBoundingClientRect();
-    const scaleX=W/rect.width,scaleY=H/rect.height;
-    const mx=(touch.clientX-rect.left)*scaleX-cx;
-    const my=(touch.clientY-rect.top)*scaleY-cy;
-    const dist=Math.sqrt(mx*mx+my*my);
-    if(dist<inner||dist>R){tip.style.display='none';return;}
-    let a=Math.atan2(my,mx);
-    if(a<-Math.PI/2)a+=2*Math.PI;
-    const hit=slices.find(s=>a>=s.start&&a<s.end);
-    if(hit){
-      const r=hit.row;const dU=r.vU-r.cU;const pct=r.cU>0?dU/r.cU*100:0;
-      tip.style.display='block';
-      tip.style.left=Math.min(touch.clientX+12, window.innerWidth-160)+'px';
-      tip.style.top=Math.max(touch.clientY-80,10)+'px';
-      tip.innerHTML=`<b style="color:${hit.color}">${r.ticker}</b><br>VA: ${fu(r.vU,0)}<br>Cap: ${fu(r.cU,0)}<br>Gan: <span style="color:${dU>=0?'var(--g)':'var(--r)'}">${dU>=0?'+':''}${fu(dU,0)}</span><br>Rend: <span style="color:${pct>=0?'var(--g)':'var(--r)'}">${pct>=0?'+':''}${pct.toFixed(1)}%</span><br>Peso: ${(r.vU/totVU*100).toFixed(1)}%`;
-      setTimeout(()=>tip.style.display='none',3000);
-    }
-  },{passive:false});
   canvas.onmousemove=function(e){
     const rect=canvas.getBoundingClientRect();
     const scaleX=W/rect.width,scaleY=H/rect.height;
@@ -721,14 +714,27 @@ function renderPrecGrid(){
   const tickers=[...new Set(PORT.map(p=>p.ticker))].sort();
   document.getElementById('pgrid').innerHTML=tickers.map((t,i)=>{
     const px=lp[t];const p=PORT.find(x=>x.ticker===t);const vp=px?.var_pct;
+    const ratio = getRatio(t);
+    const usdAccion = px?.usdAccion;
     return`<div class="pxc"><div class="pxt" style="color:${CLRS[i%CLRS.length]}">${t}<span class="pill ${pp(p?.tipo||'CEDEAR')}" style="margin-left:6px">${p?.tipo||'—'}</span></div>
     <div class="pxr"><span class="pxk">Precio ARS</span><span class="pxv">${px?.ars?fa(px.ars):'<span style="color:var(--mu)">buscando…</span>'}</span></div>
     <div class="pxr"><span class="pxk">Precio USD</span><span class="pxv">${px?.usd?fu(px.usd):'<span style="color:var(--mu)">—</span>'}</span></div>
-    <div class="pxr"><span class="pxk">Stock NYSE</span><span class="pxv">${px?.stock_usd?fu(px.stock_usd):'—'}</span></div>
-    <div class="pxr"><span class="pxk">Ratio CEDEAR</span><span class="pxv">${px?.ratio?px.ratio+':1':'—'}</span></div>
+    <div class="pxr"><span class="pxk">Acción USD</span><span class="pxv" style="color:var(--mu2)">${usdAccion?fu(usdAccion):'—'}</span></div>
+    <div class="pxr"><span class="pxk">Ratio CEDEAR</span><span class="pxv"><input type="number" min="0.1" step="1" value="${ratio}" onchange="editRatio('${t}', this.value)" style="width:56px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;color:var(--tx);font-family:var(--mono);font-size:11px;padding:2px 5px;text-align:right"></span></div>
     <div class="pxr"><span class="pxk">Var. día</span><span class="pxv ${pc(vp)}">${vp!=null?(vp>=0?'+':'')+vp.toFixed(2)+'%':'—'}</span></div>
     </div>`;
   }).join('');
+}
+
+function editRatio(ticker, val){
+  const n = parseFloat(val);
+  if(n && n > 0){
+    saveRatio(ticker, n);
+    toast('✓ Ratio '+ticker+' = '+n);
+    // No re-fetchear a Tiingo: sólo recalcular con lo que ya tenemos en cache
+    recalcularConUltimosDatos();
+    renderAll();
+  }
 }
 
 document.querySelectorAll('th[data-k]').forEach(th=>{
@@ -768,6 +774,123 @@ function toggleTheme(){
   document.getElementById('theme-btn').textContent = isLight ? '🌙' : '☀';
   localStorage.setItem('tema', isLight ? 'light' : 'dark');
 }
+
+function abrirConfig(){
+  const banner = document.getElementById('cfg-banner');
+  const inp = document.getElementById('cfg-key-inp');
+  inp.value = getTiingoKey();
+  banner.style.display = 'block';
+  inp.focus();
+}
+function guardarKey(){
+  const inp = document.getElementById('cfg-key-inp');
+  const k = inp.value.trim();
+  if(!k){ toast('⚠ Pegá la API key primero'); return; }
+  setTiingoKey(k);
+  document.getElementById('cfg-banner').style.display = 'none';
+  toast('✓ API key guardada');
+  refreshPrices();
+}
+
+// ── Calibración de ratios ──────────────────────────────────────────────
+function abrirCalib(){
+  if(!getTiingoKey()){
+    toast('⚠ Primero configurá tu API key (botón ⚙)');
+    abrirConfig();
+    return;
+  }
+  const tickers = [...new Set(PORT.map(p=>p.ticker))].sort();
+  const ratios = getRatios();
+  const list = document.getElementById('calib-list');
+  list.innerHTML = tickers.map(t => {
+    const px = lp[t];
+    const ref = px?.usd ? fu(px.usd) : '—';
+    return `<div style="display:grid;grid-template-columns:70px 1fr 85px;gap:10px;align-items:center;padding:8px 10px;background:var(--s2);border-radius:7px">
+      <span class="tk" style="font-size:13px">${t}</span>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <label style="font-size:9px;color:var(--mu);letter-spacing:.05em">Precio CEDEAR USD (broker)</label>
+        <input type="number" step="0.001" min="0" id="calib-${t}" placeholder="ej: 8.76"
+          style="background:var(--s3);border:1px solid var(--b2);border-radius:5px;color:var(--tx);font-family:var(--mono);font-size:12px;padding:5px 8px;outline:none">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;text-align:right">
+        <span style="font-size:9px;color:var(--mu);letter-spacing:.05em">ratio actual</span>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--mu2)">${ratios[t]||'—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('calib-backdrop').classList.add('open');
+}
+function closeCalib(){ document.getElementById('calib-backdrop').classList.remove('open'); }
+function closeCalibOut(e){ if(e.target === document.getElementById('calib-backdrop')) closeCalib(); }
+
+function resetRatios(){
+  if(!confirm('¿Borrar todos los ratios guardados y volver a los defaults?')) return;
+  localStorage.removeItem('cartera_ratios');
+  toast('✓ Ratios reseteados a defaults');
+  closeCalib();
+  refreshPrices();
+}
+
+async function ejecutarCalib(){
+  const tickers = [...new Set(PORT.map(p=>p.ticker))].sort();
+  // Recolectar precios ingresados
+  const precios = {};
+  tickers.forEach(t => {
+    const v = parseFloat(document.getElementById('calib-'+t).value);
+    if(v && v > 0) precios[t] = v;
+  });
+  if(Object.keys(precios).length === 0){
+    toast('⚠ No ingresaste ningún precio');
+    return;
+  }
+
+  const key = getTiingoKey();
+  if(!key){ toast('⚠ Falta API key'); return; }
+
+  const btn = document.getElementById('calib-go');
+  btn.disabled = true;
+  btn.textContent = 'consultando Tiingo…';
+
+  try {
+    // Fetch a Tiingo con todos los tickers que queremos calibrar (traducidos)
+    const symList = Object.keys(precios).map(toTiingo).join(',');
+    const r = await fetch(`https://api.tiingo.com/iex/?tickers=${symList}&token=${key}`);
+    if(!r.ok) throw new Error('Tiingo HTTP ' + r.status);
+    const data = await r.json();
+
+    // Para cada ticker, deducir ratio = precio_accion / precio_cedear_broker
+    let calibrados = 0;
+    data.forEach(row => {
+      const t = fromTiingo(row.ticker);
+      const accion = row.last ?? row.tngoLast ?? row.mid ?? row.prevClose;
+      const cedearUSD = precios[t];
+      if(accion && accion > 0 && cedearUSD && cedearUSD > 0){
+        const ratio = accion / cedearUSD;
+        saveRatio(t, +ratio.toFixed(3));
+        calibrados++;
+      }
+    });
+
+    // Guardar estos datos como los más recientes para que recalcularConUltimosDatos() funcione
+    window._lastTiingoData = data;
+    _lastFetchAt = Date.now();
+    _lastFetchKey = [...new Set(PORT.map(p=>p.ticker))].sort().join(',');
+
+    closeCalib();
+    toast(`✓ ${calibrados} ratio(s) calibrado(s)`);
+    // No re-fetchear: recalcular con la data que ya obtuvimos para calibrar
+    procesarDatosTiingo(data);
+    save();
+    setSt('live', 'en vivo · ' + new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}));
+    renderAll();
+  } catch(e){
+    toast('⚠ Error: ' + e.message);
+    console.warn('Calibración falló:', e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Guardar calibración';
+  }
+}
 // Restaurar tema guardado
 (function(){
   const t = localStorage.getItem('tema');
@@ -780,10 +903,14 @@ function toggleTheme(){
     });
   }
 })();
-load();renderSummary();
-setSt('loading','cargando precios…');
-refreshPrices();
-setInterval(refreshPrices,5*60*1000);
+setSt('loading','cargando cartera…');
+load().then(()=>{
+  renderSummary();
+  renderTable();
+  setSt('loading','cargando precios…');
+  refreshPrices();
+  setInterval(refreshPrices,15*60*1000);
+});
 </script>
 
 </body>
