@@ -199,6 +199,7 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
   <div class="hdr-r">
     <div id="sbadge"><span id="sdot"></span><span id="stxt">iniciando...</span></div>
     <button class="btn" id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">☀</button>
+    <button class="btn" onclick="changeTiingoKey()" title="Cambiar API key de Tiingo">🔑</button>
     <button class="btn" onclick="refreshPrices()">↻ Actualizar</button>
     <button class="btn btn-g" onclick="openModal()">+ Compra</button>
   </div>
@@ -334,7 +335,7 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
   <div style="max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px">
     <div style="font-family:var(--mono);font-size:12px;color:var(--mu2);line-height:1.8">
       <span style="color:var(--y);font-weight:500">⚠ No se pudieron obtener los precios.</span>
-      Hacé clic en <b style="color:var(--tx)">⚙</b> para configurar tu API key de Tiingo.
+      Verificá tu conexión o tu API key de Tiingo (botón 🔑) y hacé clic en <b style="color:var(--tx)">↻ Actualizar</b>.
     </div>
     <button onclick="document.getElementById('cors-banner').style.display='none'" style="background:none;border:none;color:var(--mu);cursor:pointer;font-size:20px;padding:0;flex-shrink:0">×</button>
   </div>
@@ -377,12 +378,13 @@ let PORT=[
 let nextId=20;
 const SK='cartera_ar_v3';
 
-function save(){try{localStorage.setItem(SK,JSON.stringify({PORT,mep,nextId}))}catch(e){}}
+function save(){try{lpPrev=Object.assign({},lp);localStorage.setItem(SK,JSON.stringify({PORT,mep,nextId,lp}))}catch(e){}}
 function load(){
   try{
     const d=JSON.parse(localStorage.getItem(SK));
     if(d?.PORT?.length >= PORT.length){
       PORT=d.PORT; if(d.mep)mep=d.mep; if(d.nextId)nextId=d.nextId;
+      if(d.lp && Object.keys(d.lp).length>0){ lp=d.lp; lpPrev=Object.assign({},d.lp); }
     }
   }catch(e){}
 }
@@ -408,67 +410,127 @@ function fd(s){if(!s)return'—';const d=new Date(s+'T12:00:00');return d.toLoca
 function pc(v){return v>0?'g':v<0?'r':''}
 function pp(t){return t==='CEDEAR'?'pc':t==='ACCION'?'pa':'po'}
 
+// ═══ TIINGO API ═══
+// Tiingo devuelve precios USD del subyacente (Wall Street). Para el CEDEAR local:
+//   precioCEDEAR_USD = precio_stock_USD / ratio_CEDEAR
+//   precioCEDEAR_ARS = precioCEDEAR_USD * MEP
+// Ratios estándar BYMA (stock:cedear). Si algún ticker no está, asume 1:1.
+const CEDEAR_RATIO = {
+  'NVDA':10, 'IBIT':20, 'BRKB':5,   'GOOGL':4,  'AMAT':5,
+  'SPY':10,  'TSLA':5,  'MSFT':5,   'AMD':5,    'ASML':5,
+  'NFLX':20, 'AAPL':10, 'AMZN':2,   'META':5,   'KO':5,
+  'JPM':5,   'V':5,     'DIS':4,    'BABA':5,   'INTC':2,
+  'QQQ':8,   'XOM':2,   'BA':5,     'VIST':1,   'GGAL':10,
+  'YPFD':1,  'PAMP':1
+};
+const TIINGO_KEY_SK = 'tiingo_api_key';
+let TIINGO_KEY = localStorage.getItem(TIINGO_KEY_SK) || '';
+let lpPrev = {};
+
+function getTiingoKey(){
+  if(!TIINGO_KEY){
+    const k = prompt('Ingresá tu API key de Tiingo (tiingo.com):');
+    if(k && k.trim()){
+      TIINGO_KEY = k.trim();
+      localStorage.setItem(TIINGO_KEY_SK, TIINGO_KEY);
+    }
+  }
+  return TIINGO_KEY;
+}
+function changeTiingoKey(){
+  const cur = TIINGO_KEY ? TIINGO_KEY.slice(0,4)+'…'+TIINGO_KEY.slice(-4) : '(ninguna)';
+  const k = prompt('API key actual: '+cur+'\n\nIngresá nueva key de Tiingo (cancelar para dejar así):');
+  if(k && k.trim()){
+    TIINGO_KEY = k.trim();
+    localStorage.setItem(TIINGO_KEY_SK, TIINGO_KEY);
+    toast('✓ API key guardada');
+    refreshPrices();
+  }
+}
+
 async function refreshPrices(){
   const tickers=[...new Set(PORT.map(p=>p.ticker))];
   setSt('loading','actualizando precios…');
 
-  const key = localStorage.getItem('tiingo_key')||'';
-  if(!key){ setSt('err','ingresá tu API key de Tiingo'); showTiingoModal(); return; }
-
+  // 1) MEP via dolarapi (sin API key, CORS abierto)
   try {
-    // 1. MEP via dolarapi
     const mepR = await fetch('https://dolarapi.com/v1/dolares/bolsa');
     const mepD = await mepR.json();
     if(mepD.venta > 100){
       mep = mepD.venta;
       document.getElementById('s-mep').textContent = '$'+mep.toLocaleString('es-AR');
     }
+  } catch(e){ console.warn('MEP fetch failed:', e); }
 
-    // 2. Precios via Tiingo IEX — tickers .BA para BYMA
-    const syms = tickers.map(t=>t.toLowerCase()+'-ba').join(',');
-    const pxR  = await fetch(
-      `https://api.tiingo.com/iex/?tickers=${syms}&token=${key}`,
-      {headers:{'Content-Type':'application/json'}}
-    );
-    const pxD = await pxR.json();
+  // 2) Verificar key
+  const key = getTiingoKey();
+  if(!key){
+    setSt('err','falta API key de Tiingo · tocá 🔑');
+    if(Object.keys(lpPrev).length > 0){ lp = Object.assign({}, lpPrev); }
+    renderAll();
+    return;
+  }
 
-    if(Array.isArray(pxD) && pxD.length > 0){
-      lp={};
-      pxD.forEach(q=>{
-        const ticker = q.ticker.replace('-ba','').toUpperCase();
-        const price  = q.last || q.close || q.prevClose || null;
-        const prev   = q.prevClose || price;
-        const varPct = (price&&prev&&prev>0) ? (price-prev)/prev*100 : 0;
-        if(price) lp[ticker]={ars:Math.round(price), usd:+(price/mep).toFixed(4), var_pct:+varPct.toFixed(2)};
-      });
-      save();
-      setSt('live','en vivo · '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}));
-      toast('✓ Precios actualizados');
-    } else {
-      throw new Error('Sin datos: '+JSON.stringify(pxD).slice(0,80));
+  // 3) Precios via Tiingo IEX (intraday) — un request por ticker en paralelo
+  // Endpoint: https://api.tiingo.com/iex/?tickers=NVDA,SPY&token=KEY
+  // Devuelve array con { ticker, last, prevClose, tngoLast, ... }
+  try {
+    const url = `https://api.tiingo.com/iex/?tickers=${tickers.join(',')}&token=${encodeURIComponent(key)}`;
+    const r = await fetch(url, {
+      headers: {'Content-Type':'application/json'},
+      signal: AbortSignal.timeout(12000)
+    });
+    if(r.status === 401 || r.status === 403){
+      setSt('err','API key inválida · tocá 🔑 para cambiarla');
+      toast('⚠ Key rechazada por Tiingo ('+r.status+')');
+      return;
     }
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    if(!Array.isArray(data) || data.length === 0) throw new Error('Tiingo sin datos');
+
+    const newLp = {};
+    data.forEach(q => {
+      const tk = (q.ticker||'').toUpperCase();
+      if(!tk) return;
+      const priceStockUSD = q.tngoLast ?? q.last ?? q.mid ?? null;
+      const prevStockUSD  = q.prevClose ?? priceStockUSD;
+      if(priceStockUSD == null) return;
+      const ratio = CEDEAR_RATIO[tk] || 1;
+      const cedearUSD = priceStockUSD / ratio;
+      const cedearARS = cedearUSD * mep;
+      const varPct = (priceStockUSD && prevStockUSD && prevStockUSD>0)
+        ? (priceStockUSD-prevStockUSD)/prevStockUSD*100 : 0;
+      newLp[tk] = {
+        ars: Math.round(cedearARS),
+        usd: +cedearUSD.toFixed(4),
+        var_pct: +varPct.toFixed(2),
+        stock_usd: +priceStockUSD.toFixed(2),
+        ratio: ratio
+      };
+    });
+
+    if(Object.keys(newLp).length === 0) throw new Error('Tiingo no devolvió tickers válidos');
+
+    lp = newLp;
+    // Tickers que Tiingo no devolvió — mantener precio anterior si existe
+    tickers.forEach(t=>{ if(!lp[t] && lpPrev[t]) lp[t]=lpPrev[t]; });
+    lpPrev = Object.assign({}, lp);
+    save();
+    setSt('live','en vivo · Tiingo · '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}));
+    toast('✓ '+Object.keys(newLp).length+' precios actualizados (Tiingo)');
   } catch(e) {
-    console.warn('refreshPrices error:', e);
-    lp={NVDA:{ars:11170,usd:8.56,var_pct:0},IBIT:{ars:6145,usd:4.42,var_pct:0},
-      BRKB:{ars:32600,usd:22.41,var_pct:0},GOOGL:{ars:7670,usd:5.98,var_pct:0},
-      AMAT:{ars:105275,usd:81.8,var_pct:0},SPY:{ars:50125,usd:36.35,var_pct:0},
-      TSLA:{ars:39140,usd:26.83,var_pct:0},MSFT:{ars:20060,usd:14.46,var_pct:0},
-      AMD:{ars:29700,usd:28.63,var_pct:0},ASML:{ars:12900,usd:10.01,var_pct:0},
-      NFLX:{ars:2367,usd:2.305,var_pct:0}};
-    setSt('err','error al obtener precios · '+e.message.slice(0,50));
+    console.warn('Tiingo refreshPrices error:', e);
+    if(Object.keys(lp).length > 0){
+      setSt('err','sin conexión · mostrando últimos precios');
+    } else if(Object.keys(lpPrev).length > 0){
+      lp = Object.assign({}, lpPrev);
+      setSt('err','sin conexión · usando cache');
+    } else {
+      setSt('err','error Tiingo · '+e.message.slice(0,50));
+    }
   }
   renderAll();
-}
-
-function showTiingoModal(){ document.getElementById('tiingo-bd').classList.add('open'); }
-function closeTiingoModal(){ document.getElementById('tiingo-bd').classList.remove('open'); }
-function closeTiingoOut(e){ if(e.target===document.getElementById('tiingo-bd'))closeTiingoOut; }
-function saveTiingoKey(){
-  const k=document.getElementById('tiingo-inp').value.trim();
-  if(!k){ toast('⚠ Ingresá tu token'); return; }
-  localStorage.setItem('tiingo_key',k);
-  closeTiingoModal();
-  refreshPrices();
 }
 
 function setSt(type,txt){
@@ -662,7 +724,8 @@ function renderPrecGrid(){
     return`<div class="pxc"><div class="pxt" style="color:${CLRS[i%CLRS.length]}">${t}<span class="pill ${pp(p?.tipo||'CEDEAR')}" style="margin-left:6px">${p?.tipo||'—'}</span></div>
     <div class="pxr"><span class="pxk">Precio ARS</span><span class="pxv">${px?.ars?fa(px.ars):'<span style="color:var(--mu)">buscando…</span>'}</span></div>
     <div class="pxr"><span class="pxk">Precio USD</span><span class="pxv">${px?.usd?fu(px.usd):'<span style="color:var(--mu)">—</span>'}</span></div>
-    <div class="pxr"><span class="pxk">Ratio MEP</span><span class="pxv">${px?.ars&&px?.usd?Math.round(px.ars/px.usd).toLocaleString('es-AR'):'—'}</span></div>
+    <div class="pxr"><span class="pxk">Stock NYSE</span><span class="pxv">${px?.stock_usd?fu(px.stock_usd):'—'}</span></div>
+    <div class="pxr"><span class="pxk">Ratio CEDEAR</span><span class="pxv">${px?.ratio?px.ratio+':1':'—'}</span></div>
     <div class="pxr"><span class="pxk">Var. día</span><span class="pxv ${pc(vp)}">${vp!=null?(vp>=0?'+':'')+vp.toFixed(2)+'%':'—'}</span></div>
     </div>`;
   }).join('');
@@ -718,14 +781,9 @@ function toggleTheme(){
   }
 })();
 load();renderSummary();
-if(localStorage.getItem('tiingo_key')){
-  setSt('loading','cargando precios…');
-  refreshPrices();
-  setInterval(refreshPrices,5*60*1000);
-} else {
-  setSt('err','configurá tu API key de Tiingo para ver precios');
-  setTimeout(showTiingoModal, 600);
-}
+setSt('loading','cargando precios…');
+refreshPrices();
+setInterval(refreshPrices,5*60*1000);
 </script>
 
 </body>
