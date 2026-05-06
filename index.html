@@ -443,6 +443,7 @@ const RATIOS_DEFAULT = {
   // Ratios oficiales según broker (abril 2026)
   NVDA:24, IBIT:10, BRKB:22, GOOGL:58, AMAT:5, SPY:20,
   TSLA:15, MSFT:30, AMD:10, ASML:146, NFLX:48,
+  LRCX:7, QQQ:5,
   // otros tickers comunes por si los agregás — VERIFICAR con broker:
   AAPL:10, AMZN:12, META:6, KO:5, JPM:5, V:6, MA:12, DIS:4,
   BABA:5, VIST:1, MELI:20, XOM:2, PFE:3, BAC:5, WMT:6, NKE:5
@@ -674,6 +675,7 @@ async function refreshPrices(force){
 // Procesa data cruda de Tiingo y llena lp[]. Extraído para reusar en recalcular.
 function procesarDatosTiingo(pxData){
   lp = {};
+  if(!Array.isArray(pxData)){ console.warn('Tiingo no devolvió array:', pxData); return; }
   pxData.forEach(row => {
     const ticker = fromTiingo(row.ticker);
     const usdAccion = row.last ?? row.tngoLast ?? row.mid ?? row.prevClose;
