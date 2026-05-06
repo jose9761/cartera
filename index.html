@@ -608,40 +608,46 @@ async function refreshPrices(force){
     // Traducimos tickers locales a nombres Tiingo (BRKB → BRK-B, etc.)
     // IMPORTANTE: la API key va en header Authorization (no en URL) para que
     // no falle por CORS desde dominios como github.io
+    // Dividir en batches de 8 para no exceder límite de Tiingo free tier
     const tickersTiingo = tickers.map(toTiingo);
-    const tiingoUrl = `https://api.tiingo.com/iex/?tickers=${tickersTiingo.join(',')}`;
-    let pxRes;
-    try {
-      pxRes = await fetch(tiingoUrl, {
-        headers: {
-          'Authorization': 'Token ' + key,
-          'Content-Type': 'application/json'
-        }
+    const BATCH = 8;
+    const batches = [];
+    for(let i=0; i<tickersTiingo.length; i+=BATCH){
+      batches.push(tickersTiingo.slice(i, i+BATCH));
+    }
+
+    async function fetchBatch(syms){
+      const url = `https://api.tiingo.com/iex/?tickers=${syms.join(',')}`;
+      const r = await fetch(url, {
+        headers: {'Authorization': 'Token ' + key, 'Content-Type': 'application/json'}
       });
+      if(!r.ok){
+        if(r.status === 401 || r.status === 403){
+          setSt('err', 'API key de Tiingo inválida');
+          document.getElementById('cfg-banner').style.display = 'block';
+          renderAll(); throw new Error('auth');
+        }
+        if(r.status === 429){
+          setSt('err', 'Tiingo rate limit · esperá unos minutos');
+          toast('⚠ Tiingo rate limit. Esperá ~15 min.');
+          renderAll(); throw new Error('ratelimit');
+        }
+        throw new Error('Tiingo HTTP ' + r.status);
+      }
+      return r.json();
+    }
+
+    let pxData = [];
+    try {
+      const results = await Promise.all(batches.map(fetchBatch));
+      results.forEach(r => { if(Array.isArray(r)) pxData = pxData.concat(r); });
     } catch(e) {
-      // TypeError: Failed to fetch → casi siempre CORS bloqueado o sin internet
+      if(e.message === 'auth' || e.message === 'ratelimit') return;
       setSt('err', 'no pude conectar a Tiingo (CORS o sin internet)');
-      toast('⚠ No pude conectar a Tiingo. Revisá consola (F12) para detalles.');
-      console.warn('Fetch a Tiingo falló a nivel red:', e);
-      renderAll();
-      return;
+      toast('⚠ No pude conectar a Tiingo. Revisá consola (F12).');
+      console.warn('Fetch a Tiingo falló:', e);
+      renderAll(); return;
     }
-    if(!pxRes.ok){
-      if(pxRes.status === 401 || pxRes.status === 403){
-        setSt('err', 'API key de Tiingo inválida');
-        document.getElementById('cfg-banner').style.display = 'block';
-        renderAll();
-        return;
-      }
-      if(pxRes.status === 429){
-        setSt('err', 'Tiingo rate limit · esperá unos minutos');
-        toast('⚠ Tiingo rate limit. El plan gratuito permite pocas consultas por hora. Esperá ~15 min.');
-        renderAll();
-        return;
-      }
-      throw new Error('Tiingo HTTP ' + pxRes.status);
-    }
-    const pxData = await pxRes.json();
 
     // Guardar raw data para poder recalcular sin nuevo fetch
     window._lastTiingoData = pxData;
