@@ -491,27 +491,33 @@ function setTiingoKey(k){ localStorage.setItem('tiingo_key', k.trim()); }
 // precActUSD  = precio actual snapshot del xlsx (col COTIZACION U$S)
 // capital     = ARS pagados totales
 let PORT=[
-  {id:1, ticker:'NVDA', fecha:'2023-04-12', capital:53100,   qty:120, tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:1.15,  precActUSD:8.56,  mepComp:386},
-  {id:2, ticker:'IBIT', fecha:'2025-01-16', capital:509960,  qty:76,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:5.82,  precActUSD:4.42,  mepComp:1180},
-  {id:3, ticker:'IBIT', fecha:'2025-01-21', capital:247450,  qty:35,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:6.16,  precActUSD:4.42,  mepComp:1160},
-  {id:4, ticker:'BRKB', fecha:'2025-04-08', capital:299390,  qty:9,   tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:22.75, precActUSD:22.41, mepComp:1350},
-  {id:5, ticker:'GOOGL',fecha:'2025-05-08', capital:309060,  qty:102, tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:2.625, precActUSD:5.98,  mepComp:1150},
-  {id:6, ticker:'BRKB', fecha:'2025-05-12', capital:267500,  qty:10,  tipo:'CEDEAR', broker:'INVIU',   precCompUSD:23.7,  precActUSD:22.41, mepComp:1140},
-  {id:7, ticker:'AMAT', fecha:'2025-06-12', capital:493500,  qty:12,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:35.6,  precActUSD:81.8,  mepComp:1160},
-  {id:8, ticker:'SPY',  fecha:'2025-07-07', capital:557830,  qty:14,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:31.2,  precActUSD:36.35, mepComp:1275},
-  {id:9, ticker:'TSLA', fecha:'2025-08-08', capital:120000,  qty:4,   tipo:'CEDEAR', broker:'GALICIA', precCompUSD:22.25, precActUSD:26.83, mepComp:1340},
-  {id:10,ticker:'NVDA', fecha:'2025-08-21', capital:211640,  qty:22,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:7.25,  precActUSD:8.56,  mepComp:1310},
-  {id:11,ticker:'SPY',  fecha:'2025-09-04', capital:623700,  qty:14,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:32.45, precActUSD:36.35, mepComp:1380},
-  {id:12,ticker:'NVDA', fecha:'2025-09-19', capital:307800,  qty:27,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:7.42,  precActUSD:8.56,  mepComp:1530},
-  {id:13,ticker:'MSFT', fecha:'2025-10-07', capital:379960,  qty:14,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:17.72, precActUSD:14.46, mepComp:1530},
-  {id:14,ticker:'AMD',  fecha:'2025-11-07', capital:897000,  qty:26,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:23.49, precActUSD:28.63, mepComp:1470},
-  {id:15,ticker:'AMD',  fecha:'2025-12-29', capital:656000,  qty:20,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:21.96, precActUSD:28.63, mepComp:1486},
-  {id:16,ticker:'ASML', fecha:'2025-01-07', capital:412800,  qty:32,  tipo:'CEDEAR', broker:'INVIU',   precCompUSD:8.59,  precActUSD:10.01, mepComp:1495},
-  {id:17,ticker:'IBIT', fecha:'2026-02-06', capital:261800,  qty:44,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:4.16,  precActUSD:4.42,  mepComp:1450},
-  {id:18,ticker:'NFLX', fecha:'2026-02-20', capital:449730,  qty:190, tipo:'CEDEAR', broker:'INVIU',   precCompUSD:1.69,  precActUSD:2.305, mepComp:1400},
-  {id:19,ticker:'NVDA', fecha:'2023-07-06', capital:397540,  qty:440, tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:1.83,  precActUSD:8.73,  mepComp:492},
+  {id:1, ticker:'NVDA', fecha:'2023-04-12', capital:53100,    qty:120, tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:1.15,               precActUSD:8.56,  mepComp:386},
+  {id:2, ticker:'IBIT', fecha:'2025-01-16', capital:509960,   qty:76,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:5.82,               precActUSD:4.42,  mepComp:1180},
+  {id:3, ticker:'IBIT', fecha:'2025-01-21', capital:247450,   qty:35,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:6.16,               precActUSD:4.42,  mepComp:1160},
+  {id:4, ticker:'BRKB', fecha:'2025-04-08', capital:299390,   qty:9,   tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:22.75,              precActUSD:22.41, mepComp:1350},
+  {id:5, ticker:'GOOGL',fecha:'2025-05-08', capital:309060,   qty:102, tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:2.625,              precActUSD:5.98,  mepComp:1150},
+  {id:6, ticker:'BRKB', fecha:'2025-05-12', capital:267500,   qty:10,  tipo:'CEDEAR', broker:'INVIU',   precCompUSD:23.7,               precActUSD:22.41, mepComp:1140},
+  {id:7, ticker:'AMAT', fecha:'2025-06-12', capital:493500,   qty:12,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:35.6,               precActUSD:81.8,  mepComp:1160},
+  {id:8, ticker:'SPY',  fecha:'2025-07-07', capital:557830,   qty:14,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:31.2,               precActUSD:36.35, mepComp:1275},
+  {id:9, ticker:'TSLA', fecha:'2025-08-08', capital:120000,   qty:4,   tipo:'CEDEAR', broker:'GALICIA', precCompUSD:22.25,              precActUSD:26.83, mepComp:1340},
+  {id:10,ticker:'NVDA', fecha:'2025-08-21', capital:211640,   qty:22,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:7.25,               precActUSD:8.56,  mepComp:1310},
+  {id:11,ticker:'SPY',  fecha:'2025-09-04', capital:623700,   qty:14,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:32.45,              precActUSD:36.35, mepComp:1380},
+  {id:12,ticker:'NVDA', fecha:'2025-09-19', capital:307800,   qty:27,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:7.42,               precActUSD:8.56,  mepComp:1530},
+  {id:13,ticker:'MSFT', fecha:'2025-10-07', capital:379960,   qty:14,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:17.72,              precActUSD:14.46, mepComp:1530},
+  {id:14,ticker:'AMD',  fecha:'2025-11-07', capital:897000,   qty:26,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:23.49,              precActUSD:28.63, mepComp:1470},
+  {id:15,ticker:'AMD',  fecha:'2025-12-29', capital:656000,   qty:20,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:21.96,              precActUSD:28.63, mepComp:1486},
+  {id:16,ticker:'ASML', fecha:'2026-01-07', capital:412800,   qty:32,  tipo:'CEDEAR', broker:'INVIU',   precCompUSD:8.629,              precActUSD:10.01, mepComp:1495},
+  {id:17,ticker:'IBIT', fecha:'2026-02-06', capital:261800,   qty:44,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:4.16,               precActUSD:4.42,  mepComp:1450},
+  {id:18,ticker:'NFLX', fecha:'2026-02-20', capital:449730,   qty:190, tipo:'CEDEAR', broker:'INVIU',   precCompUSD:1.69,               precActUSD:2.305, mepComp:1400},
+  {id:19,ticker:'NVDA', fecha:'2023-07-06', capital:397540,   qty:440, tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:1.83,               precActUSD:8.73,  mepComp:492},
+  {id:20,ticker:'MSFT', fecha:'2026-04-27', capital:990527,   qty:46,  tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:14.81,              precActUSD:null,  mepComp:1454},
+  {id:21,ticker:'LRCX', fecha:'2026-04-27', capital:995456,   qty:140, tipo:'CEDEAR', broker:'BALANZ',  precCompUSD:4.89,               precActUSD:null,  mepComp:1454},
+  {id:22,ticker:'ASML', fecha:'2026-04-27', capital:985235,   qty:66,  tipo:'CEDEAR', broker:'INVIU',   precCompUSD:10.267,             precActUSD:null,  mepComp:1454},
+  {id:23,ticker:'QQQ',  fecha:'2026-04-27', capital:1030013,  qty:20,  tipo:'CEDEAR', broker:'INVIU',   precCompUSD:35.42,              precActUSD:null,  mepComp:1454},
+  {id:24,ticker:'META', fecha:'2026-04-27', capital:1037472,  qty:24,  tipo:'CEDEAR', broker:'GALICIA', precCompUSD:29.73,              precActUSD:null,  mepComp:1454},
+  {id:25,ticker:'AMZN', fecha:'2026-04-27', capital:1015789,  qty:364, tipo:'CEDEAR', broker:'GALICIA', precCompUSD:1.919,              precActUSD:null,  mepComp:1454},
 ];
-let nextId=20;
+let nextId=26;
 const SK='cartera_ar_v3';
 
 function save(){
